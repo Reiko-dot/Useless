@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USELESS.EXE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=VT323&family=Martian+Mono:wght@100;400;800&display=swap');
+
+:root {
+  --c0: #0d0d0f;
+  --c1: #ff2d6b;
+  --c2: #00f5d4;
+  --c3: #ffe45e;
+  --c4: #7b2fff;
+  --w: #f0ece2;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--c0);
+  font-family: 'Martian Mono', monospace;
+  cursor: none;
+  user-select: none;
+}
+
+#bg { position: fixed; inset: 0; z-index: 0; }
+
+#scanlines {
+  position: fixed; inset: 0; z-index: 1;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px, transparent 3px,
+    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
+  );
+  pointer-events: none;
+  animation: scan 8s linear infinite;
+}
+@keyframes scan {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 80px; }
+}
+
+#vignette {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+}
+
+#cursor {
+  position: fixed; z-index: 9999; pointer-events: none;
+  width: 12px; height: 12px;
+  transform: translate(-50%, -50%);
+}
+#cursor::before {
+  content: '+';
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: var(--c2);
+  text-shadow: 0 0 10px var(--c2);
+  position: absolute;
+  top: -10px; left: -6px;
+  animation: cursorPulse 1s steps(1) infinite;
+}
+@keyframes cursorPulse {
+  0%,49%  { color: var(--c2); text-shadow: 0 0 10px var(--c2); }
+  50%,100%{ color: var(--c1); text-shadow: 0 0 10px var(--c1); }
+}
+
+#ui {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.glitch-wrap { position: relative; margin-bottom: 0.2em; }
+
+#title {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(5rem, 16vw, 13rem);
+  color: var(--w);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  position: relative;
+  transition: color 0.08s;
+}
+#title::before, #title::after {
+  content: attr(data-text);
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+#title::before {
+  color: var(--c1);
+  animation: glitch1 2.5s infinite steps(1);
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+}
+#title::after {
+  color: var(--c2);
+  animation: glitch2 2.5s infinite steps(1);
+  clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+}
+@keyframes glitch1 {
+  0%,90%,100%{ transform:translate(0); opacity:0; }
+  91%{ transform:translate(-4px,2px); opacity:1; }
+  93%{ transform:translate(4px,-2px); opacity:1; }
+  95%{ transform:translate(0); opacity:0; }
+}
+@keyframes glitch2 {
+  0%,85%,100%{ transform:translate(0); opacity:0; }
+  86%{ transform:translate(5px,1px); opacity:1; }
+  88%{ transform:translate(-3px,-1px); opacity:1; }
+  90%{ transform:translate(0); opacity:0; }
+}
+
+#ticker {
+  font-family: 'VT323', monospace;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--c3);
+  letter-spacing: 0.2em;
+  margin-bottom: 2.5rem;
+  min-height: 2em;
+  text-align: center;
+  text-shadow: 0 0 14px var(--c3);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#btn {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: none;
+  padding: 0;
+  outline: none;
+}
+#btn-inner {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+  letter-spacing: 0.15em;
+  color: var(--c0);
+  background: var(--c2);
+  padding: 1.1em 2.6em;
+  display: block;
+  position: relative;
+  transition: background 0.1s, transform 0.08s;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+#btn:hover #btn-inner { background: var(--c1); transform: scale(1.04); }
+#btn:active #btn-inner { transform: scale(0.97); }
+#btn-shadow {
+  position: absolute; inset: 0;
+  background: var(--c4);
+  transform: translate(6px, 6px);
+  z-index: -1;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: transform 0.1s;
+}
+#btn:hover #btn-shadow { transform: translate(10px, 10px); }
+
+#stats {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 3rem;
+  align-items: flex-end;
+}
+.stat { display: flex; flex-direction: column; align-items: center; }
+.stat-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.stat-val {
+  font-family: 'VT323', monospace;
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  line-height: 1;
+  color: var(--c1);
+  text-shadow: 0 0 20px var(--c1);
+  min-width: 3ch;
+  text-align: center;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+#toast-pool { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+.toast {
+  position: absolute;
+  font-family: 'VT323', monospace;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  animation: toastFly 1.8s ease-out forwards;
+  white-space: nowrap;
+}
+@keyframes toastFly {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-90px) scale(0.85); }
+}
+
+.ripple {
+  position: fixed;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleOut 0.7s ease-out forwards;
+  pointer-events: none;
+  z-index: 15;
+}
+@keyframes rippleOut {
+  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+@keyframes bodyShake {
+  0%,100%{transform:translate(0)}
+  20%{transform:translate(-8px,4px)}
+  40%{transform:translate(8px,-4px)}
+  60%{transform:translate(-5px,6px)}
+  80%{transform:translate(6px,-3px)}
+}
+.chaos { animation: bodyShake 0.35s ease; }
+
+#footer {
+  position: fixed; bottom: 1rem; left: 0; right: 0;
+  text-align: center;
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  color: #222;
+  z-index: 10;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="cursor"></div>
+<div id="toast-pool"></div>
+
+<div id="ui">
+  <div class="glitch-wrap">
+    <div id="title" data-text="USELESS">CLICK</div>
+  </div>
+  <div id="ticker">LOADING PURPOSE... ERROR 404</div>
+
+  <button id="btn" onclick="doNothing(event)">
+    <div id="btn-shadow"></div>
+    <div id="btn-inner">DO NOTHING</div>
+  </button>
+
+  <div id="stats">
+    <div class="stat">
+      <div class="stat-label">clicks wasted</div>
+      <div class="stat-val" id="count">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">seconds lost</div>
+      <div class="stat-val" id="secs">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">purpose found</div>
+      <div class="stat-val" id="purpose" style="color:var(--c2);text-shadow:0 0 20px var(--c2)">0</div>
+    </div>
+  </div>
+</div>
+
+<div id="footer">© Nothing Inc. · Patent Pending on Doing Nothing · Est. The Void</div>
+
+<script>
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+const mouse = {x: -999, y: -999};
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#ff2d6b','#00f5d4','#ffe45e','#7b2fff','#ff8c42'];
+
+class Particle {
+  constructor(burst) { this.reset(burst); }
+  reset(burst) {
+    if (burst) {
+      this.x = burst.x; this.y = burst.y;
+      this.vx = (Math.random()-0.5)*12;
+      this.vy = (Math.random()-0.5)*12;
+      this.life = 1; this.decay = 0.025 + Math.random()*0.04;
+      this.size = 3 + Math.random()*5;
+      this.type = 'burst';
+    } else {
+      this.x = Math.random()*W; this.y = Math.random()*H;
+      this.vx = (Math.random()-0.5)*0.4;
+      this.vy = (Math.random()-0.5)*0.4;
+      this.life = 1; this.decay = 0;
+      this.size = 1 + Math.random()*2;
+      this.type = 'ambient';
+    }
+    this.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+  }
+  update() {
+    if (this.type === 'burst') {
+      this.vx *= 0.93; this.vy *= 0.93;
+      this.x += this.vx; this.y += this.vy;
+      this.life -= this.decay;
+      if (this.life <= 0) this.reset();
+    } else {
+      const dx = this.x - mouse.x, dy = this.y - mouse.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 120) {
+        const force = (120-d)/120 * 2.5;
+        this.x += dx/d*force; this.y += dy/d*force;
+      }
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < 0) this.x = W;
+      if (this.x > W) this.x = 0;
+      if (this.y < 0) this.y = H;
+      if (this.y > H) this.y = 0;
+      particles.forEach(p2 => {
+        if (p2 === this || p2.type === 'burst') return;
+        const dx2 = p2.x - this.x, dy2 = p2.y - this.y;
+        const dd = dx2*dx2 + dy2*dy2;
+        if (dd < 12000) {
+          ctx.beginPath();
+          ctx.strokeStyle = this.color;
+          ctx.globalAlpha = (1 - dd/12000) * 0.12;
+          ctx.lineWidth = 0.5;
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      });
+    }
+  }
+  draw() {
+    ctx.globalAlpha = this.type === 'burst' ? this.life : 0.55;
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = this.type === 'burst' ? 8 : 4;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
+}
+
+for (let i = 0; i < 90; i++) particles.push(new Particle());
+
+function burst(x, y, n) {
+  n = n || 28;
+  for (let i = 0; i < n; i++) particles.push(new Particle({x, y}));
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  ctx.fillStyle = 'rgba(13,13,15,0.18)';
+  ctx.fillRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  while (particles.length > 300) particles.splice(90, 1);
+}
+animate();
+
+// cursor
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+
+// ticker typewriter
+const tickerEl = document.getElementById('ticker');
+const tickers = [
+  'LOADING PURPOSE... ERROR 404',
+  'CALCULATING MEANING OF LIFE... TIMEOUT',
+  'RUNNING PRODUCTIVITY.EXE... CRASH',
+  'CONNECTING TO MOTIVATION... DISCONNECTED',
+  'SEARCHING FOR REASON TO EXIST... NOT FOUND',
+  'INITIALIZING AMBITION... PERMISSION DENIED',
+  'DOWNLOADING INSPIRATION... 0.000001%',
+  'CONTACTING THE UNIVERSE... NO SIGNAL',
+  'COMPILING EXCUSES... SUCCESS',
+  'DEPLOYING NOTHING v2.0.0... DONE',
+  'MEASURING WASTED TIME... OVERFLOW',
+  'LOCATING GOALS... THEY MOVED',
+];
+let ti = 0, ci = 0, deleting = false;
+function typeTicker() {
+  const str = tickers[ti % tickers.length];
+  if (!deleting) {
+    tickerEl.textContent = str.slice(0, ++ci);
+    if (ci >= str.length) { deleting = true; setTimeout(typeTicker, 1800); return; }
+  } else {
+    tickerEl.textContent = str.slice(0, --ci);
+    if (ci <= 0) { deleting = false; ti++; setTimeout(typeTicker, 300); return; }
+  }
+  setTimeout(typeTicker, deleting ? 28 : 55);
+}
+typeTicker();
+
+// seconds counter
+let secsEl = document.getElementById('secs'), secsCount = 0;
+setInterval(() => { secsEl.textContent = ++secsCount; }, 1000);
+
+// button
+let clicks = 0;
+const countEl = document.getElementById('count');
+const purposeEl = document.getElementById('purpose');
+const pool = document.getElementById('toast-pool');
+
+const msgs = [
+  ['NOTHING HAPPENED', '#ff2d6b'],
+  ['GALAXY UNIMPRESSED', '#00f5d4'],
+  ['PRODUCTIVITY: -1', '#ff2d6b'],
+  ['NULL RETURNED', '#7b2fff'],
+  ['THE VOID YAWNED', '#00f5d4'],
+  ['404: POINT NOT FOUND', '#ffe45e'],
+  ['YOU DID IT! (DID NOTHING)', '#00f5d4'],
+  ['NO ONE WAS NOTIFIED', '#7b2fff'],
+  ['EXCELLENT. ABSOLUTELY NOTHING.', '#ffe45e'],
+  ['CLICK PROCESSED. DISCARDED.', '#ff2d6b'],
+  ['CONGRATS ON THE NOTHING', '#00f5d4'],
+  ['ENTROPY INCREASED SLIGHTLY', '#7b2fff'],
+  ['RESULT: SEE PREVIOUS RESULT', '#ffe45e'],
+  ['BIG CLICK ENERGY: WASTED', '#ff2d6b'],
+  ['NADA. ZILCH. ZERO. NICE.', '#00f5d4'],
+  ['FILED UNDER /dev/null', '#7b2fff'],
+  ['ACHIEVEMENT UNLOCKED: NOTHING', '#ffe45e'],
+  ['THE BUTTON FELT NOTHING', '#ff2d6b'],
+];
+
+function spawnToast(x, y, text, color) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = '> ' + text;
+  t.style.color = color;
+  t.style.textShadow = '0 0 12px ' + color;
+  t.style.left = (x + (Math.random()-0.5)*120) + 'px';
+  t.style.top  = (y - 20) + 'px';
+  pool.appendChild(t);
+  setTimeout(() => t.remove(), 1900);
+}
+
+function spawnRipple(x, y) {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  const size = 120 + Math.random()*80;
+  r.style.cssText = 'left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;border:2px solid '+COLORS[clicks%COLORS.length]+';opacity:0.6;';
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 750);
+}
+
+function doNothing(e) {
+  clicks++;
+  countEl.textContent = clicks;
+
+  const col = COLORS[clicks % COLORS.length];
+  countEl.style.color = col;
+  countEl.style.textShadow = '0 0 20px ' + col;
+
+  burst(e.clientX, e.clientY, Math.min(30 + clicks*2, 80));
+  spawnRipple(e.clientX, e.clientY);
+
+  const [msg, mc] = msgs[clicks % msgs.length];
+  spawnToast(e.clientX, e.clientY, msg, mc);
+
+  if (clicks % 10 === 0) {
+    document.body.classList.remove('chaos');
+    void document.body.offsetWidth;
+    document.body.classList.add('chaos');
+    for (let i=0;i<3;i++) setTimeout(() => spawnRipple(Math.random()*W, Math.random()*H), i*80);
+  }
+
+  if (clicks % 47 === 0) {
+    purposeEl.textContent = parseInt(purposeEl.textContent) + 1;
+  }
+
+  const titleEl = document.getElementById('title');
+  titleEl.style.color = col;
+  setTimeout(() => titleEl.style.color = '', 80);
+
+  document.getElementById('btn-inner').style.background = col;
+  setTimeout(() => document.getElementById('btn-inner').style.background = '', 120);
+}
+
+// idle bursts
+let lastClick = Date.now();
+document.getElementById('btn').addEventListener('click', () => lastClick = Date.now());
+setInterval(() => {
+  if (Date.now() - lastClick > 5000) {
+    burst(Math.random()*W, Math.random()*H, 12);
+  }
+}, 2000);
+
+canvas.addEventListener('click', e => burst(e.clientX, e.clientY, 10));
+</script>
+</body>
+</html>
